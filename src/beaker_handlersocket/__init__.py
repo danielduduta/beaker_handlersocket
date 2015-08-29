@@ -3,9 +3,8 @@ import cPickle as pickle
 
 from datetime import datetime
 from beaker.container import NamespaceManager, Container
-from beaker.exceptions import InvalidCacheBackendError, MissingCacheParameter
 from beaker.synchronization import null_synchronizer
-from beaker.util import verify_directory, SyncDict
+from beaker.util import SyncDict
 from pyhs import Manager
 
 
@@ -54,7 +53,7 @@ class HandlerSocketMySQLNamespaceManager(NamespaceManager):
 
 
     def get_creation_lock(self, key):
-        return null_synchronizer
+        return null_synchronizer()
 
     
     def do_remove(self):
@@ -63,10 +62,16 @@ class HandlerSocketMySQLNamespaceManager(NamespaceManager):
 
     def __getitem__(self, key):
         key = self._format_key(key)
-        log.debug("Searching for key {}".format(key))
-        result = self.hs.find(self.database, self.table, '=', ['id', 'data'], [key], self.index, 1)
+        result = None
+        try:
+            result = self.hs.find(self.database, self.table, '=', ['id', 'data'], [key], self.index, 1)
+        except Exception as e:
+            log.error("Failure {} trying to find key {}".format(e.message, key))
+            raise
+
         data = result
         if result:
+            #TODO document result data structure
             data = pickle.loads(result[0][1][1])
         return data
 
@@ -86,13 +91,15 @@ class HandlerSocketMySQLNamespaceManager(NamespaceManager):
         value = pickle.dumps(value)
         key = self._format_key(key)
         created = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
         ekey = self.has_key(key)
-        if not ekey:
-            self.hs.insert(self.database, self.table, [('id', key),('data',value), ('created', created)])
-        else:
-            self.hs.update(self.database, self.table, '=', ['id', 'data'], [key], [key, value])
-
+        try:
+            if not ekey:
+                self.hs.insert(self.database, self.table, [('id', key),('data',value), ('created', created)])
+            else:
+                self.hs.update(self.database, self.table, '=', ['id', 'data'], [key], [key, value])
+        except Exception as e:
+            log.error("Failure {} while setting value for key {}".format(e.message, key))
+            raise
     
     def __setitem__(self, key, value):
         key = self._format_key(key)
