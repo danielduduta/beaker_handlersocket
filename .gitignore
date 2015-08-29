@@ -1,0 +1,6 @@
+dist
+build
+*.swp
+*.pyc
+src/*.egg-info
+.gitignore
