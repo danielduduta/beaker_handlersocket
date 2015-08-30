@@ -38,5 +38,8 @@ setup(
     install_requires=[
         'python-handler-socket==0.2.4',
         'beaker>=1.6.4'
+    ],
+    dependency_links=[
+        "git+ssh://git@github.com:danielduduta/pyhs.git@master#egg=python-handler-socket==0.2.4"
     ]
 )

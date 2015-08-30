@@ -29,3 +29,9 @@ Sample::
         "table": "users",
         "index": "PRIMARY"
     }
+
+
+Notes
+-----
+
+Requires packages not in pip. Use --process-dependency-links with pip to install properly 
