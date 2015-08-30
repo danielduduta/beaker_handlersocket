@@ -34,4 +34,4 @@ Sample::
 Notes
 -----
 
-Requires packages not in pip. Use --process-dependency-links with pip to install properly 
+Requires packages not instalable with pip - https://github.com/danielduduta/pyhs 
